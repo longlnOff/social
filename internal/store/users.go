@@ -5,16 +5,39 @@ import (
 	"database/sql"
 )
 
-type UsersStore struct {
+type User struct {
+	ID 			int64 `json:"id"`
+	Username	string `json:"username"`
+	Email		string `json:"email"`
+	Password	string `json:"-"`
+	CreatedAt	string `json:"created_at"`
+}
+
+type UserStore struct {
 	db *sql.DB
 }
 
-func NewUser(db *sql.DB) *UsersStore {
-	return &UsersStore{
+func NewUser(db *sql.DB) *UserStore {
+	return &UserStore{
 		db: db,
 	}
 }
 
-func (u *UsersStore) Create(ctx context.Context) error {
-	return nil
+func (u *UserStore) Create(ctx context.Context, user *User) error {
+	query := `
+		INSERT INTO users (username, email, password)
+		VALUES ($1,$2,$3)
+		RETURNING id, created_at
+	`
+
+	return u.db.QueryRowContext(
+		ctx,
+		query,
+		user.Username,
+		user.Email,
+		user.Password,
+	).Scan(
+		&user.ID,
+		&user.CreatedAt,
+	)
 }
