@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/longlnOff/social/internal/store"
 	"github.com/spf13/viper"
 )
 
@@ -12,8 +13,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	store := store.NewStorage(nil)
+
 	app := &application{
 		configuration: cfg,
+		store:         store,
 	}
 
 	mux := app.routes()
