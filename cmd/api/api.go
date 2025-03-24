@@ -17,8 +17,24 @@ type application struct {
 
 
 type configuration struct {
+	Server ServerConfiguration
+	Database DatabaseConfiguration
+}
+
+type ServerConfiguration struct {
 	SERVER_ADDRESS string	`mapstructure:"SERVER_ADDRESS"`
 	SERVER_PORT string		`mapstructure:"SERVER_PORT"`
+}
+
+type DatabaseConfiguration struct {
+	HOST 					string	`mapstructure:"HOST"`
+	PORT 					string	`mapstructure:"PORT"`
+	USER 					string	`mapstructure:"USER"`
+	PASSWORD 				string	`mapstructure:"PASSWORD"`
+	DB_NAME 				string	`mapstructure:"DB_NAME"`
+	DB_MAX_OPEN_CONNS 		int	`mapstructure:"DB_MAX_OPEN_CONNS"`
+	DB_MAX_IDLE_CONNS 		int	`mapstructure:"DB_MAX_IDLE_CONNS"`
+	DB_MAX_IDLE_TIME 		int	`mapstructure:"DB_MAX_IDLE_TIME"`
 }
 
 
@@ -44,9 +60,9 @@ func (app *application) routes() http.Handler {
 
 func (app *application) run(mux http.Handler) error {
 	server := http.Server{
-		Addr:    app.configuration.SERVER_ADDRESS + ":" + app.configuration.SERVER_PORT,
+		Addr:    app.configuration.Server.SERVER_ADDRESS + ":" + app.configuration.Server.SERVER_PORT,
 		Handler: mux,
 	}
-	log.Printf("Starting server on %s port", app.configuration.SERVER_PORT)
+	log.Printf("Starting server on %s port", app.configuration.Server.SERVER_PORT)
 	return server.ListenAndServe()
 }
