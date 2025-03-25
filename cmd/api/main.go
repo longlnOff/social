@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/longlnOff/social/internal/store"
+	"github.com/longlnOff/social/internal/db"
 	"github.com/spf13/viper"
 )
 
@@ -13,7 +15,25 @@ func main() {
 		log.Fatal(err)
 	}
 
-	store := store.NewStorage(nil)
+	database, err := db.New(
+		fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=disable",
+			cfg.Database.ENGINE,
+			cfg.Database.USER,
+			cfg.Database.PASSWORD,
+			cfg.Database.HOST,
+			cfg.Database.PORT,
+			cfg.Database.DB_NAME),
+		cfg.Database.DB_MAX_OPEN_CONNS,
+		cfg.Database.DB_MAX_IDLE_CONNS,
+		cfg.Database.DB_MAX_IDLE_TIME,
+	)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer database.Close()
+	log.Printf("Connected to database: postgres://%s:%s@%s:%s/%s\n", cfg.Database.USER, cfg.Database.PASSWORD, cfg.Database.HOST, cfg.Database.PORT, cfg.Database.DB_NAME)
+
+	store := store.NewStorage(database)
 
 	app := &application{
 		configuration: cfg,
@@ -31,8 +51,6 @@ func LoadConfig(path string) (cfg configuration, err error) {
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
 
-	viper.GetString("SERVER_ADDRESS")
-
 	if err = viper.ReadInConfig(); err != nil {
 		return configuration{}, err
 	}
@@ -43,6 +61,7 @@ func LoadConfig(path string) (cfg configuration, err error) {
 	}
 
 	database_cfg := DatabaseConfiguration{
+		ENGINE:				     viper.GetString("DB_ENGINE"),
 		HOST:                    viper.GetString("DB_HOST"),
 		PORT:                    viper.GetString("DB_PORT"),
 		USER:                    viper.GetString("DB_USER"),
@@ -50,7 +69,7 @@ func LoadConfig(path string) (cfg configuration, err error) {
 		DB_NAME:                 viper.GetString("DB_NAME"),
 		DB_MAX_OPEN_CONNS:       viper.GetInt("DB_MAX_OPEN_CONNS"),
 		DB_MAX_IDLE_CONNS:       viper.GetInt("DB_MAX_IDLE_CONNS"),
-		DB_MAX_IDLE_TIME:        viper.GetInt("DB_MAX_IDLE_TIME"),
+		DB_MAX_IDLE_TIME:        viper.GetDuration("DB_MAX_IDLE_TIME"),
 	}
 
 	return configuration{

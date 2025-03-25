@@ -27,14 +27,15 @@ type ServerConfiguration struct {
 }
 
 type DatabaseConfiguration struct {
-	HOST 					string	`mapstructure:"HOST"`
-	PORT 					string	`mapstructure:"PORT"`
-	USER 					string	`mapstructure:"USER"`
-	PASSWORD 				string	`mapstructure:"PASSWORD"`
-	DB_NAME 				string	`mapstructure:"DB_NAME"`
-	DB_MAX_OPEN_CONNS 		int	`mapstructure:"DB_MAX_OPEN_CONNS"`
-	DB_MAX_IDLE_CONNS 		int	`mapstructure:"DB_MAX_IDLE_CONNS"`
-	DB_MAX_IDLE_TIME 		int	`mapstructure:"DB_MAX_IDLE_TIME"`
+	ENGINE					string			`mapstructure:"DB_ENGINE"`
+	HOST 					string			`mapstructure:"DB_HOST"`
+	PORT 					string			`mapstructure:"DB_PORT"`
+	USER 					string			`mapstructure:"DB_USER"`
+	PASSWORD 				string			`mapstructure:"DB_PASSWORD"`
+	DB_NAME 				string			`mapstructure:"DB_NAME"`
+	DB_MAX_OPEN_CONNS 		int				`mapstructure:"DB_MAX_OPEN_CONNS"`
+	DB_MAX_IDLE_CONNS 		int				`mapstructure:"DB_MAX_IDLE_CONNS"`
+	DB_MAX_IDLE_TIME 		time.Duration	`mapstructure:"DB_MAX_IDLE_TIME"`
 }
 
 
