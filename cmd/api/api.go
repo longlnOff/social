@@ -24,6 +24,8 @@ type configuration struct {
 type ServerConfiguration struct {
 	SERVER_ADDRESS string	`mapstructure:"SERVER_ADDRESS"`
 	SERVER_PORT string		`mapstructure:"SERVER_PORT"`
+	ENVIRONMENT string		`mapstructure:"ENVIRONMENT"`
+	VERSION string			`mapstructure:"VERSION"`
 }
 
 type DatabaseConfiguration struct {

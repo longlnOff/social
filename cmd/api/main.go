@@ -58,6 +58,8 @@ func LoadConfig(path string) (cfg configuration, err error) {
 	server_cfg := ServerConfiguration{
 		SERVER_ADDRESS: viper.GetString("SERVER_ADDRESS"),
 		SERVER_PORT:    viper.GetString("SERVER_PORT"),
+		ENVIRONMENT:    viper.GetString("ENVIRONMENT"),
+		VERSION:        viper.GetString("VERSION"),
 	}
 
 	database_cfg := DatabaseConfiguration{
