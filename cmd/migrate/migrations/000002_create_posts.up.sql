@@ -3,8 +3,6 @@ CREATE TABLE IF NOT EXISTS posts (
     content TEXT NOT NULL,
     title VARCHAR(255) NOT NULL,
     user_id BIGINT NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    email citext UNIQUE NOT NULL,
     created_at TIMESTAMP(0) WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP(0) WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
