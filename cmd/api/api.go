@@ -32,6 +32,7 @@ func (app *application) routes() http.Handler {
 	r.Route("/v1", func (r chi.Router) {
 		r.Get("/health", app.healthcheckHandler)
 	
+		// Post API
 		r.Route("/posts", func (r chi.Router) {
 			r.Post("/", app.createPostHandler)
 		
@@ -44,6 +45,16 @@ func (app *application) routes() http.Handler {
 				
 				// Create comment for post
 				r.Post("/comments", app.createCommentHandler)
+			})
+		})
+
+		// User API
+		r.Route("/users", func (r chi.Router) {
+			r.Post("/", app.createUserHandler)
+
+			r.Route("/{userID}", func (r chi.Router) {
+				r.Use(app.userContextMiddleware)
+				r.Get("/", app.getUserHandler)
 			})
 		})
 	
