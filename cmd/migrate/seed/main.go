@@ -35,13 +35,5 @@ func main() {
 
 	store := store.NewStorage(database)
 
-	app := &application{
-		configuration: cfg,
-		store:         store,
-	}
-
-	mux := app.routes()
-
-	log.Fatal(app.run(mux))
+	db.Seed(&store)
 }
-

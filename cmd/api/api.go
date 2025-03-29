@@ -7,38 +7,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/longlnOff/social/cmd/configuration"
 	"github.com/longlnOff/social/internal/store"
 )
 
 type application struct {
-	configuration configuration
+	configuration configuration.Configuration
 	store store.Storage
 }
 
 
-type configuration struct {
-	Server ServerConfiguration
-	Database DatabaseConfiguration
-}
 
-type ServerConfiguration struct {
-	SERVER_ADDRESS string	`mapstructure:"SERVER_ADDRESS"`
-	SERVER_PORT string		`mapstructure:"SERVER_PORT"`
-	ENVIRONMENT string		`mapstructure:"ENVIRONMENT"`
-	VERSION string			`mapstructure:"VERSION"`
-}
-
-type DatabaseConfiguration struct {
-	ENGINE					string			`mapstructure:"DB_ENGINE"`
-	HOST 					string			`mapstructure:"DB_HOST"`
-	PORT 					string			`mapstructure:"DB_PORT"`
-	USER 					string			`mapstructure:"DB_USER"`
-	PASSWORD 				string			`mapstructure:"DB_PASSWORD"`
-	DB_NAME 				string			`mapstructure:"DB_NAME"`
-	DB_MAX_OPEN_CONNS 		int				`mapstructure:"DB_MAX_OPEN_CONNS"`
-	DB_MAX_IDLE_CONNS 		int				`mapstructure:"DB_MAX_IDLE_CONNS"`
-	DB_MAX_IDLE_TIME 		time.Duration	`mapstructure:"DB_MAX_IDLE_TIME"`
-}
 
 
 func (app *application) routes() http.Handler {
@@ -57,18 +36,21 @@ func (app *application) routes() http.Handler {
 			r.Post("/", app.createPostHandler)
 		
 			r.Route("/{postID}", func (r chi.Router) {
+				r.Use(app.postContextMiddleware)
+			
 				r.Get("/", app.getPostsHandler)
+				r.Patch("/", app.updatePostHandler)
+				r.Delete("/", app.deletePostHandler)
+				
+				// Create comment for post
+				r.Post("/comments", app.createCommentHandler)
 			})
 		})
 	
 	})
-
 	
 	return r
 }
-
-
-
 
 func (app *application) run(mux http.Handler) error {
 	server := http.Server{
