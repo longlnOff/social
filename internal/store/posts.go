@@ -36,7 +36,7 @@ func NewPost(db *sql.DB) *PostStore {
 	}
 }
 
-func (s *PostStore) GetUserFeed(ctx context.Context, userID int64) ([]PostWithMetadata, error) {
+func (s *PostStore) GetUserFeed(ctx context.Context, userID int64, p PaginatedFeed) ([]PostWithMetadata, error) {
 	query := `
 		SELECT 
 		p.id, p.user_id, p.title, p.content, p.created_at, p.version, p.tags, u.username,
@@ -45,19 +45,24 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userID int64) ([]PostWithMe
 		LEFT JOIN comments c ON c.post_id = p.id
 		LEFT JOIN users u ON p.user_id = u.id
 		JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
-		WHERE f.user_id = $1 OR p.user_id = $1
+		WHERE 
+			f.user_id = $1 OR p.user_id = $1 AND
+			(p.title ILIKE '%' || $4 || '%' OR p.content ILIKE '%' || $4 || '%') AND
+			(p.tags @> $5 OR p.tags='{}')
 		GROUP BY p.id, u.username
-		ORDER BY p.created_at DESC
+		ORDER BY p.created_at ` + p.Sort + ` 
+		LIMIT $2 OFFSET $3
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID)
-	defer rows.Close()
+	rows, err := s.db.QueryContext(ctx, query, userID, p.Limit, p.Offset, p.Search, pq.Array(p.Tags))
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	feeds := []PostWithMetadata{}
 
 	for rows.Next() {
