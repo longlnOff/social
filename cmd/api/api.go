@@ -46,6 +46,10 @@ func (app *application) routes() http.Handler {
 				// Create comment for post
 				r.Post("/comments", app.createCommentHandler)
 			})
+
+			r.Group(func (r chi.Router) {
+				r.Get("/feed", app.getUserFeedHandler)
+			})
 		})
 
 		// User API
@@ -55,6 +59,10 @@ func (app *application) routes() http.Handler {
 			r.Route("/{userID}", func (r chi.Router) {
 				r.Use(app.userContextMiddleware)
 				r.Get("/", app.getUserHandler)
+
+				// Follow & Unfollow
+				r.Put("/follow", app.followUserHandler)
+				r.Put("/unfollow", app.unfollowUserHandler)
 			})
 		})
 	
