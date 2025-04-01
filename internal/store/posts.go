@@ -9,16 +9,16 @@ import (
 )
 
 type Post struct {
-	ID 			int64 `json:"id"`
-	Content		string `json:"content"`
-	Title		string `json:"title"`
-	UserID 		int64 `json:"user_id"`
-	Tags		[]string `json:"tags"`	
-	Version		int64 `json:"version"`
-	CreatedAt	string `json:"created_at"`
-	UpdatedAt	string `json:"updated_at"`
-	Comments 	[]Comment `json:"comments"`
-	User 		User 	`json:"user"`
+	ID        int64     `json:"id"`
+	Content   string    `json:"content"`
+	Title     string    `json:"title"`
+	UserID    int64     `json:"user_id"`
+	Tags      []string  `json:"tags"`
+	Version   int64     `json:"version"`
+	CreatedAt string    `json:"created_at"`
+	UpdatedAt string    `json:"updated_at"`
+	Comments  []Comment `json:"comments"`
+	User      User      `json:"user"`
 }
 
 type PostWithMetadata struct {
@@ -93,7 +93,7 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 		VALUES ($1,$2,$3,$4)
 		RETURNING id, created_at, updated_at
 	`
-	
+
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
@@ -133,10 +133,10 @@ func (s *PostStore) GetByID(ctx context.Context, id int64) (*Post, error) {
 	)
 	if err != nil {
 		switch {
-			case errors.Is(err, sql.ErrNoRows):
-				return nil, ErrNotFound
-			default:
-				return nil, err
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
 		}
 	}
 
@@ -154,18 +154,18 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, 
-								query, 
-								post.Title, 
-								post.Content, 
-								post.ID, 
-								post.Version).Scan(&post.Version)
+	err := s.db.QueryRowContext(ctx,
+		query,
+		post.Title,
+		post.Content,
+		post.ID,
+		post.Version).Scan(&post.Version)
 	if err != nil {
 		switch {
-			case errors.Is(err, sql.ErrNoRows):
-				return ErrNotFound
-			default:
-				return err
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
 		}
 	}
 	return err

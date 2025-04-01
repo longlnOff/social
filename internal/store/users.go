@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID 			int64 `json:"id"`
-	Username	string `json:"username"`
-	Email		string `json:"email"`
-	Password	string `json:"-"`
-	CreatedAt	string `json:"created_at"`
+	ID        int64  `json:"id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Password  string `json:"-"`
+	CreatedAt string `json:"created_at"`
 }
 
 type UserStore struct {
@@ -30,7 +30,7 @@ func (u *UserStore) Create(ctx context.Context, user *User) error {
 		VALUES ($1,$2,$3)
 		RETURNING id, created_at
 	`
-	
+
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
@@ -65,14 +65,12 @@ func (u *UserStore) GetByUserID(ctx context.Context, userID int64) (*User, error
 	)
 	if err != nil {
 		switch {
-			case errors.Is(err, sql.ErrNoRows):
-				return nil, ErrNotFound
-			default:
-				return nil, err
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
 		}
 	}
 
 	return &user, nil
 }
-
-

@@ -9,6 +9,23 @@ import (
 	"github.com/longlnOff/social/internal/store"
 )
 
+//	@title			GopherSocial API
+//	@description	API for GopherSocial, a social network for gophers.
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	LongLN
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	longlnofficial@gmail.com
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@BasePath	/v1
+
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description				Type "Bearer" followed by a space and then your token
 func main() {
 	cfg, err := configuration.LoadConfig(".")
 	if err != nil {
@@ -44,4 +61,3 @@ func main() {
 
 	log.Fatal(app.run(mux))
 }
-

@@ -5,14 +5,13 @@ import (
 	"database/sql"
 )
 
-
 type Comment struct {
-	ID 			int64 	`json:"id"`
-	PostID		int64 	`json:"post_id"`
-	UserID 		int64 	`json:"user_id"`
-	Content		string 	`json:"content"`
-	CreatedAt	string 	`json:"created_at"`
-	User 		User 	`json:"user"`
+	ID        int64  `json:"id"`
+	PostID    int64  `json:"post_id"`
+	UserID    int64  `json:"user_id"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
+	User      User   `json:"user"`
 }
 
 type CommentStore struct {
@@ -45,13 +44,13 @@ func (c *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 	for rows.Next() {
 		var comment Comment
 		comment.User = User{}
-		err := rows.Scan(&comment.ID, 
-						 &comment.PostID,
-						 &comment.UserID,
-						 &comment.Content,
-						 &comment.CreatedAt,
-						 &comment.User.Username,	// Note that this auto unmarshals into the User struct
-						 &comment.User.ID)	      	// Note that this auto unmarshals into the User struct
+		err := rows.Scan(&comment.ID,
+			&comment.PostID,
+			&comment.UserID,
+			&comment.Content,
+			&comment.CreatedAt,
+			&comment.User.Username, // Note that this auto unmarshals into the User struct
+			&comment.User.ID)       // Note that this auto unmarshals into the User struct
 		if err != nil {
 			return []Comment{}, err
 		}

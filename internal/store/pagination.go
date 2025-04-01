@@ -6,13 +6,12 @@ import (
 	"strings"
 )
 
-
 type PaginatedFeed struct {
-	Limit 	int `json:"limit" validate:"gte=1,lte=20"`
-	Offset	int `json:"offset" validate:"gte=0"`
-	Sort 	string `json:"sort" validate:"oneof=asc desc"`
-	Search 	string `json:"search" validate:"max=100"`
-	Tags	[]string `json:"tags" validate:"max=5"`
+	Limit  int      `json:"limit" validate:"gte=1,lte=20"`
+	Offset int      `json:"offset" validate:"gte=0"`
+	Sort   string   `json:"sort" validate:"oneof=asc desc"`
+	Search string   `json:"search" validate:"max=100"`
+	Tags   []string `json:"tags" validate:"max=5"`
 }
 
 func (p PaginatedFeed) Parse(r *http.Request) (PaginatedFeed, error) {
@@ -49,7 +48,6 @@ func (p PaginatedFeed) Parse(r *http.Request) (PaginatedFeed, error) {
 	if tags != "" {
 		p.Tags = strings.Split(tags, ",")
 	}
-
 
 	return p, nil
 }

@@ -8,11 +8,9 @@ import (
 	"github.com/lib/pq"
 )
 
-
-
 type Follower struct {
-	UserID     int64 `json:"user_id"`
-	FollowerID int64 `json:"follower_id"`
+	UserID     int64  `json:"user_id"`
+	FollowerID int64  `json:"follower_id"`
 	CreatedAt  string `json:"created_at"`
 }
 
@@ -36,13 +34,13 @@ func (s *FollowerStore) Follow(ctx context.Context, followerID int64, followedUs
 	_, err := s.db.ExecContext(ctx, query, followedUserID, followerID)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
-            switch pqErr.Code.Name() {
-            case "unique_violation":
-                return ErrConflict
+			switch pqErr.Code.Name() {
+			case "unique_violation":
+				return ErrConflict
 			default:
 				return err
-            }
-        }
+			}
+		}
 	}
 	return nil
 }
@@ -58,10 +56,10 @@ func (s *FollowerStore) Unfollow(ctx context.Context, followerID int64, followed
 	_, err := s.db.ExecContext(ctx, query, followedUserID, followerID)
 	if err != nil {
 		switch {
-			case errors.Is(err, sql.ErrNoRows):
-				return ErrNotFound
-			default:
-				return err
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
 		}
 	}
 	return nil

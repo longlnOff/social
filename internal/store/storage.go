@@ -8,15 +8,14 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("resouce not found")
-	ErrConflict = errors.New("resouce already exists")
+	ErrNotFound          = errors.New("resouce not found")
+	ErrConflict          = errors.New("resouce already exists")
 	QueryTimeoutDuration = 5 * time.Second
 )
 
-
 type Storage struct {
 	Post interface {
-		Create(ctx context.Context,post *Post) error
+		Create(ctx context.Context, post *Post) error
 		GetByID(ctx context.Context, id int64) (*Post, error)
 		Update(ctx context.Context, post *Post) error
 		Delete(ctx context.Context, id int64) error
@@ -41,9 +40,9 @@ type Storage struct {
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
-		Post: 		NewPost(db),
-		User: 		NewUser(db),
-		Comment: 	NewComment(db),
-		Follower: 	NewFollower(db),
+		Post:     NewPost(db),
+		User:     NewUser(db),
+		Comment:  NewComment(db),
+		Follower: NewFollower(db),
 	}
 }

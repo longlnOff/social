@@ -11,32 +11,45 @@ import (
 )
 
 type CreatePostPayload struct {
-	Title 		string 		`json:"title" validate:"required,min=3,max=100"`
-	Content 	string 		`json:"content" validate:"required,min=3,max=1000"`
-	Tags		[]string 	`json:"tags" validate:"required"`
+	Title   string   `json:"title" validate:"required,min=3,max=100"`
+	Content string   `json:"content" validate:"required,min=3,max=1000"`
+	Tags    []string `json:"tags" validate:"required"`
 }
 
 type UpdatePostPayload struct {
-	Title 		*string 		`json:"title" validate:"omitempty,min=3,max=100"`
-	Content 	*string 		`json:"content" validate:"omitempty,min=3,max=1000"`
+	Title   *string `json:"title" validate:"omitempty,min=3,max=100"`
+	Content *string `json:"content" validate:"omitempty,min=3,max=1000"`
 }
 
 type CreateCommentForPostPayload struct {
-	UserID 		int64 		`json:"user_id" validate:"required"`
-	Content 	string 		`json:"content" validate:"required,min=3,max=1000"`
+	UserID  int64  `json:"user_id" validate:"required"`
+	Content string `json:"content" validate:"required,min=3,max=1000"`
 }
 
 type CreateCommentForPostResponse struct {
-	ID int64 `json:"id"`
-	PostID int64 `json:"post_id"`
-	UserID int64 `json:"user_id"`
-	Content string `json:"content"`
+	ID        int64  `json:"id"`
+	PostID    int64  `json:"post_id"`
+	UserID    int64  `json:"user_id"`
+	Content   string `json:"content"`
 	CreatedAt string `json:"created_at"`
 }
 
 type PostCTX string
+
 var Postctx PostCTX = "post"
 
+// createPostHandler godoc
+//
+//	@Summary		Create a new post
+//	@Description	Creates a new post with the provided title, content, and tags
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		CreatePostPayload	true	"Post creation data"
+//	@Success		201		{object}	store.Post			"Created post"
+//	@Failure		400		{object}	string				"Invalid request payload"
+//	@Failure		500		{object}	string				"Internal Server Error"
+//	@Router			/posts [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -50,11 +63,11 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	post := store.Post{
-		Title: payload.Title,
+		Title:   payload.Title,
 		Content: payload.Content,
 		// TODO: Change after auth
-		UserID: int64(1),
-		Tags: payload.Tags,
+		UserID: int64(2),
+		Tags:   payload.Tags,
 	}
 	if err := app.store.Post.Create(r.Context(), &post); err != nil {
 		app.internalServerError(w, r, err)
@@ -67,6 +80,18 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// getPostsHandler godoc
+//
+//	@Summary		Get post details
+//	@Description	Retrieves a post by ID including its comments
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int			true	"Post ID"
+//	@Success		200		{object}	store.Post	"Post with comments"
+//	@Failure		404		{object}	string		"Post not found"
+//	@Failure		500		{object}	string		"Internal Server Error"
+//	@Router			/posts/{postID} [get]
 func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
@@ -84,6 +109,18 @@ func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// deletePostHandler godoc
+//
+//	@Summary		Delete a post
+//	@Description	Deletes a post by ID
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int		true	"Post ID"
+//	@Success		204		{object}	nil		"No content"
+//	@Failure		404		{object}	string	"Post not found"
+//	@Failure		500		{object}	string	"Internal Server Error"
+//	@Router			/posts/{postID} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
 	postID, err := strconv.ParseInt(idParam, 10, 64)
@@ -94,17 +131,31 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	err = app.store.Post.Delete(r.Context(), postID)
 	if err != nil {
 		switch {
-			case errors.Is(err, store.ErrNotFound):
-				app.notFoundResponse(w, r, err)
-			default:
-				app.internalServerError(w, r, err)
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
 		}
 		return
 	}
-	
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// updatePostHandler godoc
+//
+//	@Summary		Update a post
+//	@Description	Updates a post's title and/or content
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int					true	"Post ID"
+//	@Param			request	body		UpdatePostPayload	true	"Post update data"
+//	@Success		200		{object}	store.Post			"Updated post"
+//	@Failure		400		{object}	string				"Invalid request payload"
+//	@Failure		404		{object}	string				"Post not found"
+//	@Failure		500		{object}	string				"Internal Server Error"
+//	@Router			/posts/{postID} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
@@ -129,10 +180,10 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 
 	if err := app.store.Post.Update(r.Context(), post); err != nil {
 		switch {
-			case errors.Is(err, store.ErrNotFound):
-				app.notFoundResponse(w, r, err)
-			default:
-				app.internalServerError(w, r, err)
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
 		}
 		return
 	}
@@ -143,6 +194,20 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// createCommentHandler godoc
+//
+//	@Summary		Create a comment
+//	@Description	Creates a new comment for a specific post
+//	@Tags			comments
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int								true	"Post ID"
+//	@Param			request	body		CreateCommentForPostPayload		true	"Comment creation data"
+//	@Success		201		{object}	CreateCommentForPostResponse	"Created comment"
+//	@Failure		400		{object}	string							"Invalid request payload"
+//	@Failure		404		{object}	string							"Post not found"
+//	@Failure		500		{object}	string							"Internal Server Error"
+//	@Router			/posts/{postID}/comments [post]
 func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreateCommentForPostPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -164,10 +229,10 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	res := CreateCommentForPostResponse{
-		ID: comment.ID,
-		PostID: comment.PostID,
-		UserID: comment.UserID,
-		Content: comment.Content,
+		ID:        comment.ID,
+		PostID:    comment.PostID,
+		UserID:    comment.UserID,
+		Content:   comment.Content,
 		CreatedAt: comment.CreatedAt,
 	}
 
@@ -190,10 +255,10 @@ func (app *application) postContextMiddleware(next http.Handler) http.Handler {
 		post, err := app.store.Post.GetByID(ctx, postID)
 		if err != nil {
 			switch {
-				case errors.Is(err, store.ErrNotFound):
-					app.notFoundResponse(w, r, err)
-				default:
-					app.internalServerError(w, r, err)
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r, err)
+			default:
+				app.internalServerError(w, r, err)
 			}
 			return
 		}

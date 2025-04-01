@@ -8,7 +8,6 @@ import (
 	"github.com/longlnOff/social/internal/store"
 )
 
-
 func Seed(store *store.Storage) error {
 	ctx := context.Background()
 
@@ -19,7 +18,7 @@ func Seed(store *store.Storage) error {
 			return err
 		}
 	}
-	
+
 	// Create posts
 	posts := generatePosts(100, users)
 	for post := range posts {
@@ -38,8 +37,6 @@ func Seed(store *store.Storage) error {
 
 	return nil
 }
-
-
 
 func generateUsers(count int) []*store.User {
 	users := make([]*store.User, count)
