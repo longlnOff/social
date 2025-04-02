@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -12,11 +11,13 @@ import (
 	"github.com/longlnOff/social/docs"
 	"github.com/longlnOff/social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"go.uber.org/zap"
 )
 
 type application struct {
 	configuration configuration.Configuration
 	store         store.Storage
+	logger        *zap.Logger
 }
 
 func (app *application) routes() http.Handler {
@@ -84,6 +85,6 @@ func (app *application) run(mux http.Handler) error {
 		Addr:    app.configuration.Server.SERVER_ADDRESS + ":" + app.configuration.Server.SERVER_PORT,
 		Handler: mux,
 	}
-	log.Printf("Starting server on %s port", app.configuration.Server.SERVER_PORT)
+	app.logger.Info("Starting server on:", zap.String("port", app.configuration.Server.SERVER_PORT))
 	return server.ListenAndServe()
 }

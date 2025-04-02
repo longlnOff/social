@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/longlnOff/social/cmd/configuration"
 	"github.com/longlnOff/social/internal/db"
 	"github.com/longlnOff/social/internal/store"
+	"go.uber.org/zap"
 )
 
 //	@title			GopherSocial API
@@ -27,9 +26,12 @@ import (
 // @name						Authorization
 // @description				Type "Bearer" followed by a space and then your token
 func main() {
+	logger := createLogger()
+	defer logger.Sync()
+
 	cfg, err := configuration.LoadConfig(".")
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err.Error())
 	}
 
 	database, err := db.New(
@@ -45,19 +47,19 @@ func main() {
 		cfg.Database.DB_MAX_IDLE_TIME,
 	)
 	if err != nil {
-		log.Panic(err)
+		logger.Panic(err.Error())
 	}
 	defer database.Close()
-	log.Printf("Connected to database: postgres://%s:%s@%s:%s/%s\n", cfg.Database.USER, cfg.Database.PASSWORD, cfg.Database.HOST, cfg.Database.PORT, cfg.Database.DB_NAME)
-
+	logger.Info("Connected to database.", zap.String("url", fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.Database.USER, cfg.Database.PASSWORD, cfg.Database.HOST, cfg.Database.PORT, cfg.Database.DB_NAME)))
 	store := store.NewStorage(database)
 
 	app := &application{
 		configuration: cfg,
 		store:         store,
+		logger:        logger,
 	}
 
 	mux := app.routes()
 
-	log.Fatal(app.run(mux))
+	app.logger.Fatal(app.run(mux).Error())
 }
