@@ -2,19 +2,23 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"strconv"
 
 	"github.com/longlnOff/social/internal/store"
 )
 
-func Seed(store *store.Storage) error {
+func Seed(store *store.Storage, db *sql.DB) error {
 	ctx := context.Background()
 
 	// Create user
 	users := generateUsers(100)
+	tx, _ := db.BeginTx(ctx, nil)
+
 	for user := range users {
-		if err := store.User.Create(ctx, users[user]); err != nil {
+		if err := store.User.Create(ctx, tx, users[user]); err != nil {
+			_ = tx.Rollback()
 			return err
 		}
 	}
@@ -44,7 +48,6 @@ func generateUsers(count int) []*store.User {
 		users[i] = &store.User{
 			Username: "user" + strconv.Itoa(i),
 			Email:    "user" + strconv.Itoa(i) + "@gmail.com",
-			Password: "password",
 		}
 	}
 

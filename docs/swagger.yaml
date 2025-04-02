@@ -60,6 +60,23 @@ definitions:
       version:
         type: string
     type: object
+  main.RegisterUserPayload:
+    properties:
+      email:
+        maxLength: 250
+        type: string
+      password:
+        maxLength: 50
+        minLength: 6
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   main.UpdatePostPayload:
     properties:
       content:
@@ -70,6 +87,23 @@ definitions:
         maxLength: 100
         minLength: 3
         type: string
+    type: object
+  main.UserWithToken:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      token:
+        type: string
+      username:
+        type: string
+    required:
+    - token
     type: object
   store.Comment:
     properties:
@@ -121,6 +155,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_active:
+        type: boolean
       username:
         type: string
     type: object
@@ -136,6 +172,36 @@ info:
   termsOfService: http://swagger.io/terms/
   title: GopherSocial API
 paths:
+  /authentication/user:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user with the provided username, email, and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registered user
+          schema:
+            $ref: '#/definitions/main.UserWithToken'
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - authentication
   /health:
     get:
       description: Healthcheck
@@ -356,29 +422,6 @@ paths:
       tags:
       - feed
       - posts
-  /users:
-    post:
-      consumes:
-      - application/json
-      description: Creates a new user account
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created user
-          schema:
-            $ref: '#/definitions/store.User'
-        "400":
-          description: Invalid request payload
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Create a new user
-      tags:
-      - users
   /users/{userID}:
     get:
       consumes:
@@ -486,6 +529,35 @@ paths:
       tags:
       - users
       - follows
+  /users/activate/{token}:
+    put:
+      consumes:
+      - application/json
+      description: Activates a user account
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User activated
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Activate a user
+      tags:
+      - users
 securityDefinitions:
   ApiKeyAuth:
     description: Type "Bearer" followed by a space and then your token

@@ -18,19 +18,34 @@ type FollowedPayload struct {
 	UserID int64 `json:"user_id" validate:"required"`
 }
 
-// createUserHandler godoc
+// ActivateUser godoc
 //
-//	@Summary		Create a new user
-//	@Description	Creates a new user account
+//	@Summary		Activate a user
+//	@Description	Activates a user account
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Success		201	{object}	store.User	"Created user"
-//	@Failure		400	{object}	string		"Invalid request payload"
-//	@Failure		500	{object}	string		"Internal Server Error"
-//	@Router			/users [post]
-func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
-
+//	@Param			token	path		string	true	"Invitation token"
+//	@Success		204		{string}	string	"User activated"
+//	@Failure		404		{object}	error	"User not found"
+//	@Failure		500		{object}	error	"Internal Server Error"
+//	@Security		ApiKeyAuth
+//	@Router			/users/activate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	if err := app.store.User.ActivateUser(r.Context(), token); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+	if err := app.jsonResponse(w, http.StatusNoContent, "User activated"); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 }
 
 // getUserHandler godoc

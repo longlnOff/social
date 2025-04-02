@@ -9,6 +9,11 @@ import (
 type Configuration struct {
 	Server   ServerConfiguration
 	Database DatabaseConfiguration
+	Mail     MailConfiguration
+}
+
+type MailConfiguration struct {
+	EXP time.Duration
 }
 
 type ServerConfiguration struct {
@@ -42,6 +47,10 @@ func LoadConfig(path string) (cfg Configuration, err error) {
 		return Configuration{}, err
 	}
 
+	mail_cfg := MailConfiguration{
+		EXP: viper.GetDuration("MAIL_EXP"),
+	}
+
 	server_cfg := ServerConfiguration{
 		SERVER_ADDRESS:   viper.GetString("SERVER_ADDRESS"),
 		SERVER_PORT:      viper.GetString("SERVER_PORT"),
@@ -66,5 +75,6 @@ func LoadConfig(path string) (cfg Configuration, err error) {
 	return Configuration{
 		Server:   server_cfg,
 		Database: database_cfg,
+		Mail:     mail_cfg,
 	}, nil
 }

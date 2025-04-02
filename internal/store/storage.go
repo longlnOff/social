@@ -23,8 +23,10 @@ type Storage struct {
 	}
 
 	User interface {
-		Create(ctx context.Context, user *User) error
+		Create(ctx context.Context, tx *sql.Tx, user *User) error
 		GetByUserID(ctx context.Context, userID int64) (*User, error)
+		CreateAndInvite(ctx context.Context, token string, user *User, invitationExpirationDuration time.Duration) error
+		ActivateUser(ctx context.Context, token string) error
 	}
 
 	Comment interface {
@@ -45,4 +47,18 @@ func NewStorage(db *sql.DB) Storage {
 		Comment:  NewComment(db),
 		Follower: NewFollower(db),
 	}
+}
+
+func withTx(ctx context.Context, db *sql.DB, fn func(tx *sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if err := fn(tx); err != nil {
+		if err := tx.Rollback(); err != nil {
+			return err
+		}
+		return err
+	}
+	return tx.Commit()
 }

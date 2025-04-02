@@ -35,5 +35,5 @@ func main() {
 
 	store := store.NewStorage(database)
 
-	db.Seed(&store)
+	db.Seed(&store, database)
 }
