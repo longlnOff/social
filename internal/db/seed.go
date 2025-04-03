@@ -38,7 +38,8 @@ func Seed(store *store.Storage, db *sql.DB) error {
 			return err
 		}
 	}
-
+	tx.Commit()
+	
 	return nil
 }
 
