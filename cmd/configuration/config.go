@@ -13,7 +13,7 @@ type Configuration struct {
 }
 
 type MailConfiguration struct {
-	EXP time.Duration	`mapstructure:"MAIL_EXP"`
+	EXP time.Duration `mapstructure:"MAIL_EXP"`
 }
 
 type ServerConfiguration struct {
