@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/longlnOff/social/cmd/configuration"
 	"github.com/longlnOff/social/internal/db"
+	"github.com/longlnOff/social/internal/mailer"
 	"github.com/longlnOff/social/internal/store"
 	"go.uber.org/zap"
 )
@@ -52,11 +54,16 @@ func main() {
 	defer database.Close()
 	logger.Info("Connected to database.", zap.String("url", fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.Database.USER, cfg.Database.PASSWORD, cfg.Database.HOST, cfg.Database.PORT, cfg.Database.DB_NAME)))
 	store := store.NewStorage(database)
+	mailer, err := mailer.NewMailTrapClient(cfg.Mail.MailTrap.API_KEY, cfg.Mail.FROM_EMAIL)
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
 
 	app := &application{
 		configuration: cfg,
 		store:         store,
 		logger:        logger,
+		mailer:        mailer,
 	}
 
 	mux := app.routes()

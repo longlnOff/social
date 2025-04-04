@@ -4,9 +4,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"github.com/google/uuid"
 	"net/http"
 
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+
+	"github.com/longlnOff/social/internal/mailer"
 	"github.com/longlnOff/social/internal/store"
 )
 
@@ -79,7 +82,30 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		Token: plainToken,
 	}
 
+	isProduction := app.configuration.Server.ENVIRONMENT == "production"
+	activationURL := app.configuration.Server.FRONTEND_URL + "/confirm/" + plainToken
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
 	// send email
+	status, err := app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProduction)
+	if err != nil {
+		app.logger.Error("Error sending email:", zap.String("error", err.Error()))
+
+		// rollback user creation if email fails (SAGA pattern) - delete user and user's invitation
+		if err := app.store.User.Delete(r.Context(), user.ID); err != nil {
+			app.logger.Error("Error rolling back user creation:", zap.String("error", err.Error()))
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	app.logger.Info("Email sent to:", zap.String("email", user.Email), zap.Int("status", status))
 
 	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.internalServerError(w, r, err)

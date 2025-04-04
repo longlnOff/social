@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/longlnOff/social/cmd/configuration"
 	"github.com/longlnOff/social/docs"
+	"github.com/longlnOff/social/internal/mailer"
 	"github.com/longlnOff/social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
@@ -18,6 +19,7 @@ type application struct {
 	configuration configuration.Configuration
 	store         store.Storage
 	logger        *zap.Logger
+	mailer        mailer.Client
 }
 
 func (app *application) routes() http.Handler {

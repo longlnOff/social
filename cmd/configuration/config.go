@@ -13,7 +13,18 @@ type Configuration struct {
 }
 
 type MailConfiguration struct {
-	EXP time.Duration `mapstructure:"MAIL_EXP"`
+	EXP        time.Duration `mapstructure:"MAIL_EXP"`
+	FROM_EMAIL string        `mapstructure:"FROM_EMAIL"`
+	SendGrid   SendGridConfiguration
+	MailTrap   MailTrapConfiguration
+}
+
+type SendGridConfiguration struct {
+	API_KEY string `mapstructure:"SEND_GRID_API_KEY"`
+}
+
+type MailTrapConfiguration struct {
+	API_KEY string `mapstructure:"MAIL_TRAP_API_KEY"`
 }
 
 type ServerConfiguration struct {
@@ -23,6 +34,7 @@ type ServerConfiguration struct {
 	VERSION          string `mapstructure:"VERSION"`
 	EXTERNAL_ADDRESS string `mapstructure:"EXTERNAL_ADDRESS"`
 	EXTERNAL_PORT    string `mapstructure:"EXTERNAL_PORT"`
+	FRONTEND_URL     string `mapstructure:"FRONTEND_URL"`
 }
 
 type DatabaseConfiguration struct {
@@ -48,7 +60,14 @@ func LoadConfig(path string) (cfg Configuration, err error) {
 	}
 
 	mail_cfg := MailConfiguration{
-		EXP: viper.GetDuration("MAIL_EXP"),
+		EXP:        viper.GetDuration("MAIL_EXP"),
+		FROM_EMAIL: viper.GetString("FROM_EMAIL"),
+		SendGrid: SendGridConfiguration{
+			API_KEY: viper.GetString("SENDGRID_API_KEY"),
+		},
+		MailTrap: MailTrapConfiguration{
+			API_KEY: viper.GetString("MAILTRAP_API_KEY"),
+		},
 	}
 
 	server_cfg := ServerConfiguration{
@@ -58,6 +77,7 @@ func LoadConfig(path string) (cfg Configuration, err error) {
 		VERSION:          viper.GetString("VERSION"),
 		EXTERNAL_ADDRESS: viper.GetString("EXTERNAL_ADDRESS"),
 		EXTERNAL_PORT:    viper.GetString("EXTERNAL_PORT"),
+		FRONTEND_URL:     viper.GetString("FRONTEND_URL"),
 	}
 
 	database_cfg := DatabaseConfiguration{
