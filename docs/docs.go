@@ -24,6 +24,46 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/authentication/token": {
+            "post": {
+                "description": "Creates a new token for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Create a new token",
+                "parameters": [
+                    {
+                        "description": "User credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created token",
+                        "schema": {
+                            "$ref": "#/definitions/main.UserWithToken"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/authentication/user": {
             "post": {
                 "description": "Creates a new user with the provided username, email, and password",
@@ -96,6 +136,11 @@ const docTemplate = `{
         },
         "/posts": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Creates a new post with the provided title, content, and tags",
                 "consumes": [
                     "application/json"
@@ -142,6 +187,11 @@ const docTemplate = `{
         },
         "/posts/feed": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Retrieves posts for a user's feed with pagination",
                 "consumes": [
                     "application/json"
@@ -204,6 +254,11 @@ const docTemplate = `{
         },
         "/posts/{postID}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Retrieves a post by ID including its comments",
                 "consumes": [
                     "application/json"
@@ -246,6 +301,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Deletes a post by ID",
                 "consumes": [
                     "application/json"
@@ -285,6 +345,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Updates a post's title and/or content",
                 "consumes": [
                     "application/json"
@@ -344,6 +409,11 @@ const docTemplate = `{
         },
         "/posts/{postID}/comments": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Creates a new comment for a specific post",
                 "consumes": [
                     "application/json"
@@ -448,6 +518,11 @@ const docTemplate = `{
         },
         "/users/{userID}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Retrieves a user by ID",
                 "consumes": [
                     "application/json"
@@ -492,6 +567,11 @@ const docTemplate = `{
         },
         "/users/{userID}/follow": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Creates a follow relationship between the authenticated user and target user",
                 "consumes": [
                     "application/json"
@@ -549,6 +629,11 @@ const docTemplate = `{
         },
         "/users/{userID}/unfollow": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Removes a follow relationship between the authenticated user and target user",
                 "consumes": [
                     "application/json"
@@ -665,6 +750,24 @@ const docTemplate = `{
                 "title": {
                     "type": "string",
                     "maxLength": 100,
+                    "minLength": 3
+                }
+            }
+        },
+        "main.CreateUserTokenPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 250
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 50,
                     "minLength": 3
                 }
             }

@@ -5,7 +5,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
@@ -22,6 +24,76 @@ type RegisterUserPayload struct {
 type UserWithToken struct {
 	*store.User
 	Token string `json:"token" validate:"required"`
+}
+
+type CreateUserTokenPayload struct {
+	Email    string `json:"email" validate:"required,email,max=250"`
+	Password string `json:"password" validate:"required,min=3,max=50"`
+}
+
+// createTokenHandler godoc
+//
+//	@Summary		Create a new token
+//	@Description	Creates a new token for the user
+//	@Tags			authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreateUserTokenPayload	true	"User credentials"
+//	@Success		201		{object}	UserWithToken			"Created token"
+//	@Failure		500		{object}	string					"Internal Server Error"
+//	@Router			/authentication/token [post]
+func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Request) {
+	// 1. parse payload
+	var payload CreateUserTokenPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	// 2. validate payload
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// 3. check if user exists or not
+	user, err := app.store.User.GetByEmail(r.Context(), payload.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.unauthorizedJWTStatelessErrorResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	// 4. check if password is correct or not
+	if err := user.Password.Check(payload.Password); err!= nil {
+		app.unauthorizedJWTStatelessErrorResponse(w, r, err)
+		return
+	}
+
+	// 5. generate the token --> add claims
+	claims := jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(app.configuration.Auth.Token.AUTH_TOKEN_EXP).Unix(),
+		"iat": time.Now().Unix(),
+		"nbf": time.Now().Unix(),
+		"iss": app.configuration.Auth.Token.AUTH_TOKEN_ISS,
+		"aud": app.configuration.Auth.Token.AUTH_TOKEN_ISS,
+	}
+	token, err := app.authenticator.GenerateToken(claims)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	// 6. return to client
+	if err := app.jsonResponse(w, http.StatusCreated, token); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
 }
 
 // registerUserHandler godoc

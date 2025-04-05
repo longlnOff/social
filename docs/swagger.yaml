@@ -44,6 +44,19 @@ definitions:
     - tags
     - title
     type: object
+  main.CreateUserTokenPayload:
+    properties:
+      email:
+        maxLength: 250
+        type: string
+      password:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    type: object
   main.FollowedPayload:
     properties:
       user_id:
@@ -172,6 +185,32 @@ info:
   termsOfService: http://swagger.io/terms/
   title: GopherSocial API
 paths:
+  /authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new token for the user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created token
+          schema:
+            $ref: '#/definitions/main.UserWithToken'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create a new token
+      tags:
+      - authentication
   /authentication/user:
     post:
       consumes:
@@ -245,6 +284,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Create a new post
       tags:
       - posts
@@ -272,6 +313,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Delete a post
       tags:
       - posts
@@ -300,6 +343,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Get post details
       tags:
       - posts
@@ -338,6 +383,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Update a post
       tags:
       - posts
@@ -377,6 +424,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Create a comment
       tags:
       - comments
@@ -418,6 +467,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Get user feed
       tags:
       - feed
@@ -448,6 +499,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Get user details
       tags:
       - users
@@ -486,6 +539,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Follow a user
       tags:
       - users
@@ -525,6 +580,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: Unfollow a user
       tags:
       - users

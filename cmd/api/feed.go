@@ -19,6 +19,7 @@ import (
 //	@Success		200		{array}		store.Post	"Feed posts"
 //	@Failure		400		{object}	string		"Invalid pagination parameters"
 //	@Failure		500		{object}	string		"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/posts/feed [get]
 func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Request) {
 	pagination := store.PaginatedFeed{

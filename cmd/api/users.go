@@ -59,6 +59,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 //	@Success		200		{object}	store.User	"User details"
 //	@Failure		404		{object}	string		"User not found"
 //	@Failure		500		{object}	string		"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/users/{userID} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
@@ -82,9 +83,15 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400		{object}	string			"Invalid request payload"
 //	@Failure		409		{object}	string			"Already following this user"
 //	@Failure		500		{object}	string			"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/users/{userID}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	follower := getUserFromCtx(r)
+	followedUserID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
 	var followedPayload FollowedPayload
 	if err := readJSON(w, r, &followedPayload); err != nil {
@@ -97,7 +104,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := app.store.Follower.Follow(r.Context(), follower.ID, followedPayload.UserID); err != nil {
+	if err := app.store.Follower.Follow(r.Context(), follower.ID, followedUserID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrConflict):
 			app.conflictResponse(w, r, err)
@@ -122,10 +129,15 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Failure		400		{object}	string			"Invalid request payload"
 //	@Failure		404		{object}	string			"Not following this user"
 //	@Failure		500		{object}	string			"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	follower := getUserFromCtx(r)
-
+	follweruser := getUserFromCtx(r)
+	followedUserID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 	var followedPayload FollowedPayload
 	if err := readJSON(w, r, &followedPayload); err != nil {
 		app.badRequestResponse(w, r, err)
@@ -137,7 +149,7 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := app.store.Follower.Unfollow(r.Context(), follower.ID, followedPayload.UserID); err != nil {
+	if err := app.store.Follower.Unfollow(r.Context(), follweruser.ID, followedUserID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)

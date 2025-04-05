@@ -3,8 +3,8 @@ package mailer
 import (
 	"bytes"
 	"errors"
-	"text/template"
 	gomail "gopkg.in/mail.v2"
+	"text/template"
 )
 
 type mailtrapClient struct {
@@ -42,7 +42,7 @@ func (m mailtrapClient) Send(templateFile string, username string, email string,
 		return -1, err
 	}
 
-	// For emulating error --> SAGA pattern work or not	
+	// For emulating error --> SAGA pattern work or not
 	// time.Sleep(time.Second * 20)
 	// return -1, fmt.Errorf("not implemented")
 

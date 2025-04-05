@@ -24,3 +24,14 @@ func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request,
 	app.logger.Error("Resource not found:", zap.String("error", err.Error()), zap.String("path", r.URL.Path), zap.String("method", r.Method))
 	writeJSONError(w, http.StatusNotFound, "Resource not found")
 }
+
+func (app *application) unauthorizedBasicAuthErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Error("Unauthorized:", zap.String("error", err.Error()), zap.String("path", r.URL.Path), zap.String("method", r.Method))
+	w.Header().Set("WWW-Authenticate", `Basic realm="Restricted" charset="UTF-8"`) // If set this, the browser will show the login form
+	writeJSONError(w, http.StatusUnauthorized, err.Error())
+}
+
+func (app *application) unauthorizedJWTStatelessErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Error("Unauthorized:", zap.String("error", err.Error()), zap.String("path", r.URL.Path), zap.String("method", r.Method))
+	writeJSONError(w, http.StatusUnauthorized, err.Error())
+}

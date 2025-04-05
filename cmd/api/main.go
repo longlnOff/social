@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/longlnOff/social/cmd/configuration"
+	"github.com/longlnOff/social/internal/auth"
 	"github.com/longlnOff/social/internal/db"
 	"github.com/longlnOff/social/internal/mailer"
 	"github.com/longlnOff/social/internal/store"
@@ -59,11 +60,17 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.Auth.Token.AUTH_TOKEN_SECRET,
+		cfg.Auth.Token.AUTH_TOKEN_ISS,
+		cfg.Auth.Token.AUTH_TOKEN_ISS,
+	)
+
 	app := &application{
 		configuration: cfg,
 		store:         store,
 		logger:        logger,
 		mailer:        mailer,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.routes()

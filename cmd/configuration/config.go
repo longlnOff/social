@@ -10,6 +10,23 @@ type Configuration struct {
 	Server   ServerConfiguration
 	Database DatabaseConfiguration
 	Mail     MailConfiguration
+	Auth     AuthConfiguration
+}
+
+type AuthConfiguration struct {
+	Basic BasicAuthencation
+	Token TokenAuthentication
+}
+
+type TokenAuthentication struct {
+	AUTH_TOKEN_SECRET string        `mapstructure:"AUTH_TOKEN_SECRET"`
+	AUTH_TOKEN_EXP    time.Duration `mapstructure:"AUTH_TOKEN_EXP"`
+	AUTH_TOKEN_ISS    string        `mapstructure:"AUTH_TOKEN_ISS"`
+}
+
+type BasicAuthencation struct {
+	AUTH_BASIC_USER     string `mapstructure:"AUTH_BASIC_USER"`
+	AUTH_BASIC_PASSWORD string `mapstructure:"AUTH_BASIC_PASSWORD"`
 }
 
 type MailConfiguration struct {
@@ -59,6 +76,17 @@ func LoadConfig(path string) (cfg Configuration, err error) {
 		return Configuration{}, err
 	}
 
+	basicAuth := BasicAuthencation{
+		AUTH_BASIC_USER:     viper.GetString("AUTH_BASIC_USER"),
+		AUTH_BASIC_PASSWORD: viper.GetString("AUTH_BASIC_PASSWORD"),
+	}
+
+	tokenAuth := TokenAuthentication{
+		AUTH_TOKEN_SECRET: viper.GetString(("AUTH_TOKEN_SECRET")),
+		AUTH_TOKEN_EXP:    viper.GetDuration("AUTH_TOKEN_EXP"),
+		AUTH_TOKEN_ISS:    viper.GetString("AUTH_TOKEN_ISS"),
+	}
+
 	mail_cfg := MailConfiguration{
 		EXP:        viper.GetDuration("MAIL_EXP"),
 		FROM_EMAIL: viper.GetString("FROM_EMAIL"),
@@ -96,5 +124,6 @@ func LoadConfig(path string) (cfg Configuration, err error) {
 		Server:   server_cfg,
 		Database: database_cfg,
 		Mail:     mail_cfg,
+		Auth:     AuthConfiguration{Basic: basicAuth, Token: tokenAuth},
 	}, nil
 }

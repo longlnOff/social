@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/longlnOff/social/cmd/configuration"
 	"github.com/longlnOff/social/docs"
+	"github.com/longlnOff/social/internal/auth"
 	"github.com/longlnOff/social/internal/mailer"
 	"github.com/longlnOff/social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -20,6 +21,7 @@ type application struct {
 	store         store.Storage
 	logger        *zap.Logger
 	mailer        mailer.Client
+	authenticator auth.Authenticator
 }
 
 func (app *application) routes() http.Handler {
@@ -28,19 +30,19 @@ func (app *application) routes() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-
 	r.Use(middleware.Timeout(time.Second * 60))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Get("/health", app.healthcheckHandler)
+
+		r.With(app.BasicAuthMiddleware()).Get("/health", app.healthcheckHandler)
 
 		docsURL := fmt.Sprintf("%s/swagger/doc.json",
 			app.configuration.Server.SERVER_PORT)
 		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL((docsURL))))
 		// Post API
 		r.Route("/posts", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware())
 			r.Post("/", app.createPostHandler)
-
 			r.Route("/{postID}", func(r chi.Router) {
 				r.Use(app.postContextMiddleware)
 
@@ -62,7 +64,6 @@ func (app *application) routes() http.Handler {
 			r.Put("/activate/{token}", app.activateUserHandler)
 
 			r.Route("/{userID}", func(r chi.Router) {
-				r.Use(app.userContextMiddleware)
 				r.Get("/", app.getUserHandler)
 
 				// Follow & Unfollow
@@ -74,6 +75,7 @@ func (app *application) routes() http.Handler {
 		// Public routes
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
+			r.Post("/token", app.createTokenHandler)
 		})
 	})
 

@@ -49,6 +49,7 @@ var Postctx PostCTX = "post"
 //	@Success		201		{object}	store.Post			"Created post"
 //	@Failure		400		{object}	string				"Invalid request payload"
 //	@Failure		500		{object}	string				"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/posts [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
@@ -62,11 +63,12 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	user := getUserFromCtx(r)
+
 	post := store.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
-		// TODO: Change after auth
-		UserID: int64(2),
+		UserID: user.ID,
 		Tags:   payload.Tags,
 	}
 	if err := app.store.Post.Create(r.Context(), &post); err != nil {
@@ -91,6 +93,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 //	@Success		200		{object}	store.Post	"Post with comments"
 //	@Failure		404		{object}	string		"Post not found"
 //	@Failure		500		{object}	string		"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/posts/{postID} [get]
 func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
@@ -120,6 +123,7 @@ func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) 
 //	@Success		204		{object}	nil		"No content"
 //	@Failure		404		{object}	string	"Post not found"
 //	@Failure		500		{object}	string	"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/posts/{postID} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
@@ -155,6 +159,7 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 //	@Failure		400		{object}	string				"Invalid request payload"
 //	@Failure		404		{object}	string				"Post not found"
 //	@Failure		500		{object}	string				"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/posts/{postID} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
@@ -207,6 +212,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 //	@Failure		400		{object}	string							"Invalid request payload"
 //	@Failure		404		{object}	string							"Post not found"
 //	@Failure		500		{object}	string							"Internal Server Error"
+//	@Security		ApiKeyAuth
 //	@Router			/posts/{postID}/comments [post]
 func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreateCommentForPostPayload
