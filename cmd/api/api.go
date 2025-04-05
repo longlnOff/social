@@ -41,14 +41,14 @@ func (app *application) routes() http.Handler {
 		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL((docsURL))))
 		// Post API
 		r.Route("/posts", func(r chi.Router) {
-			r.Use(app.AuthTokenMiddleware())
+			r.Use(app.AuthTokenMiddleware)
 			r.Post("/", app.createPostHandler)
 			r.Route("/{postID}", func(r chi.Router) {
 				r.Use(app.postContextMiddleware)
 
 				r.Get("/", app.getPostsHandler)
-				r.Patch("/", app.updatePostHandler)
-				r.Delete("/", app.deletePostHandler)
+				r.Patch("/", app.checkPostownership("moderator", app.updatePostHandler))
+				r.Delete("/", app.checkPostownership("admin", app.deletePostHandler))
 
 				// Create comment for post
 				r.Post("/comments", app.createCommentHandler)
@@ -64,8 +64,9 @@ func (app *application) routes() http.Handler {
 			r.Put("/activate/{token}", app.activateUserHandler)
 
 			r.Route("/{userID}", func(r chi.Router) {
+				r.Use(app.AuthTokenMiddleware)
+	
 				r.Get("/", app.getUserHandler)
-
 				// Follow & Unfollow
 				r.Put("/follow", app.followUserHandler)
 				r.Put("/unfollow", app.unfollowUserHandler)

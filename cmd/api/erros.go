@@ -35,3 +35,8 @@ func (app *application) unauthorizedJWTStatelessErrorResponse(w http.ResponseWri
 	app.logger.Error("Unauthorized:", zap.String("error", err.Error()), zap.String("path", r.URL.Path), zap.String("method", r.Method))
 	writeJSONError(w, http.StatusUnauthorized, err.Error())
 }
+
+func (app *application) forbiddenErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Warn("Forbidden:", zap.String("error", err.Error()), zap.String("path", r.URL.Path), zap.String("method", r.Method))
+	writeJSONError(w, http.StatusForbidden, "forbidden")
+}

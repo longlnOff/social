@@ -14,6 +14,9 @@ var (
 )
 
 type Storage struct {
+	Role interface {
+		GetByName(ctx context.Context, name string) (*Role, error)
+	}
 	Post interface {
 		Create(ctx context.Context, post *Post) error
 		GetByID(ctx context.Context, id int64) (*Post, error)
@@ -48,6 +51,7 @@ func NewStorage(db *sql.DB) Storage {
 		User:     NewUser(db),
 		Comment:  NewComment(db),
 		Follower: NewFollower(db),
+		Role:     NewRole(db),
 	}
 }
 
