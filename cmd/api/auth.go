@@ -68,7 +68,7 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// 4. check if password is correct or not
-	if err := user.Password.Check(payload.Password); err!= nil {
+	if err := user.Password.Check(payload.Password); err != nil {
 		app.unauthorizedJWTStatelessErrorResponse(w, r, err)
 		return
 	}

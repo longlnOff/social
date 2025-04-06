@@ -68,8 +68,8 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	post := store.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
-		UserID: user.ID,
-		Tags:   payload.Tags,
+		UserID:  user.ID,
+		Tags:    payload.Tags,
 	}
 	if err := app.store.Post.Create(r.Context(), &post); err != nil {
 		app.internalServerError(w, r, err)

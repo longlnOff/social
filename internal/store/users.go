@@ -24,7 +24,7 @@ type User struct {
 	CreatedAt string   `json:"created_at"`
 	IsActive  bool     `json:"is_active"`
 	RoleID    int64    `json:"role_id"`
-	Role 	  Role     `json:"role"`
+	Role      Role     `json:"role"`
 }
 
 type password struct {
@@ -169,7 +169,7 @@ func (u *UserStore) GetByUserID(ctx context.Context, userID int64) (*User, error
 		SELECT users.id, username, email, password, created_at, roles.*
 		FROM users
 		JOIN roles ON (roles.id = users.role_id)
-		WHERE id = $1
+		WHERE users.id = $1
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/longlnOff/social/internal/store"
+	"go.uber.org/zap"
 )
 
 // AuthorizationMiddleware for post
@@ -81,17 +83,52 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 			app.unauthorizedJWTStatelessErrorResponse(w, r, err)
 			return
 		}
+
 		ctx := r.Context()
-		// 4. add the token to the context
-		user, err := app.store.User.GetByUserID(ctx, userID)
+		user, err := app.getUser(ctx, userID)
 		if err != nil {
-			app.unauthorizedJWTStatelessErrorResponse(w, r, err)
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.unauthorizedJWTStatelessErrorResponse(w, r, err)
+			default:
+				app.internalServerError(w, r, err)
+			}
 			return
 		}
 
 		ctx = context.WithValue(ctx, Userctx, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (app *application) getUser(ctx context.Context, userID int64) (*store.User, error) {
+	// 0. Check if cache is enabled
+	if !app.configuration.Cache.CACHE_ENABLED {
+		app.logger.Info("No cache connection, hit from DB", zap.Int("id", int(userID)))
+		return app.store.User.GetByUserID(ctx, userID)
+	}
+	// 1. Fetch from cache
+	user, err := app.cacheStore.User.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	// validate user
+	if user == nil {
+		// 2. Fetch from DB
+		user, err = app.store.User.GetByUserID(ctx, userID)
+		app.logger.Info("cache miss user", zap.Int("id", int(userID)))
+		app.logger.Info("Get from DB", zap.Int("id", int(userID)))
+		if err != nil {
+			return nil, err
+		}
+		// 3. Find in DB --> update cache
+		if err = app.cacheStore.User.Set(ctx, user); err != nil {
+			return nil, err
+		}
+	}
+	app.logger.Info("cache hit user", zap.Int("id", int(userID)))
+
+	return user, nil
 }
 
 func (app *application) BasicAuthMiddleware() func(http.Handler) http.Handler {

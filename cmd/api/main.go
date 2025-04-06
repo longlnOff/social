@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/longlnOff/social/cmd/configuration"
 	"github.com/longlnOff/social/internal/auth"
 	"github.com/longlnOff/social/internal/db"
 	"github.com/longlnOff/social/internal/mailer"
 	"github.com/longlnOff/social/internal/store"
+	"github.com/longlnOff/social/internal/store/cache"
 	"go.uber.org/zap"
 )
 
@@ -54,6 +56,15 @@ func main() {
 	}
 	defer database.Close()
 	logger.Info("Connected to database.", zap.String("url", fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.Database.USER, cfg.Database.PASSWORD, cfg.Database.HOST, cfg.Database.PORT, cfg.Database.DB_NAME)))
+
+	// cache
+	var cacheClient *redis.Client
+	if cfg.Cache.CACHE_ENABLED {
+		cacheClient = cache.NewValkeyClient(cfg.Cache.CACHE_ADDRESS, cfg.Cache.CACHE_PASSWORD, cfg.Cache.CACHE_DATABASE)
+		logger.Info("Connected to cache.", zap.String("address", cfg.Cache.CACHE_ADDRESS))
+	}
+	cacheStorage := cache.NewCacheStorage(cacheClient)
+
 	store := store.NewStorage(database)
 	mailer, err := mailer.NewMailTrapClient(cfg.Mail.MailTrap.API_KEY, cfg.Mail.FROM_EMAIL)
 	if err != nil {
@@ -68,6 +79,7 @@ func main() {
 	app := &application{
 		configuration: cfg,
 		store:         store,
+		cacheStore:    cacheStorage,
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,

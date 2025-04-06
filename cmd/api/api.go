@@ -12,6 +12,7 @@ import (
 	"github.com/longlnOff/social/internal/auth"
 	"github.com/longlnOff/social/internal/mailer"
 	"github.com/longlnOff/social/internal/store"
+	"github.com/longlnOff/social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
@@ -19,6 +20,7 @@ import (
 type application struct {
 	configuration configuration.Configuration
 	store         store.Storage
+	cacheStore    cache.Storage
 	logger        *zap.Logger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
@@ -65,7 +67,7 @@ func (app *application) routes() http.Handler {
 
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.AuthTokenMiddleware)
-	
+
 				r.Get("/", app.getUserHandler)
 				// Follow & Unfollow
 				r.Put("/follow", app.followUserHandler)

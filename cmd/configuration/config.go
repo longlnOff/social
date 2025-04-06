@@ -9,8 +9,16 @@ import (
 type Configuration struct {
 	Server   ServerConfiguration
 	Database DatabaseConfiguration
+	Cache    CacheConfiguration
 	Mail     MailConfiguration
 	Auth     AuthConfiguration
+}
+
+type CacheConfiguration struct {
+	CACHE_ADDRESS  string `mapstructure:"CACHE_ADDRESS"`
+	CACHE_PASSWORD string `mapstructure:"CACHE_PASSWORD"`
+	CACHE_DATABASE int    `mapstructure:"CACHE_DATABASE"`
+	CACHE_ENABLED  bool   `mapstructure:"CACHE_ENABLED"`
 }
 
 type AuthConfiguration struct {
@@ -120,9 +128,17 @@ func LoadConfig(path string) (cfg Configuration, err error) {
 		DB_MAX_IDLE_TIME:  viper.GetDuration("DB_MAX_IDLE_TIME"),
 	}
 
+	cache_cfg := CacheConfiguration{
+		CACHE_ADDRESS:  viper.GetString("CACHE_ADDRESS"),
+		CACHE_PASSWORD: viper.GetString("CACHE_PASSWORD"),
+		CACHE_DATABASE: viper.GetInt("CACHE_DATABASE"),
+		CACHE_ENABLED:  viper.GetBool("CACHE_ENABLED"),
+	}
+
 	return Configuration{
 		Server:   server_cfg,
 		Database: database_cfg,
+		Cache:    cache_cfg,
 		Mail:     mail_cfg,
 		Auth:     AuthConfiguration{Basic: basicAuth, Token: tokenAuth},
 	}, nil
