@@ -36,6 +36,10 @@ install-test-tool-npm:
 	sudo npm install -g autocannon
 
 
+.PHONY: test
+test: 
+	@go test -v ./...
+	
 CONNECTIONS ?= 100
 DURATION ?= 2
 ENDPOINT ?= http://localhost:8000/v1/users/122
@@ -48,3 +52,5 @@ benchmark:
 		exit 1; \
 	fi
 	npx autocannon $(ENDPOINT) --connections $(CONNECTIONS) --duration $(DURATION) -H "Authorization: Bearer $(TOKEN)"
+
+
